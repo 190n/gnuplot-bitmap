@@ -12,6 +12,9 @@ gnuplot-bitmap: $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
+stbi.o: stbi.c vendor/stb/stb_image.h
+	$(CC) $(CFLAGS) -c $< -Wno-unused-but-set-variable
+
 clean:
 	$(RM) gnuplot-bitmap $(OBJS)
 
