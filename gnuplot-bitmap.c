@@ -1,7 +1,10 @@
 #include "stb_image.h"
 
 #include <fcntl.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -12,20 +15,84 @@ const char *script = "set terminal pdf\n"
                      "set yrange [-%d:0]\n"
                      "plot '/proc/self/fd/%d' with points pointtype 7\n";
 
+#define OPTIONS "i:o:t:a:Idh"
+
+void usage(const char *program_name) {
+	fprintf(stderr,
+	    "usage: %s -i infile -o outfile [-Idh] [-t threshold] [-a alpha_threshold]\n"
+	    "    -i infile:          image to use as input. most common formats are supported.\n"
+	    "    -o outfile:         PDF output file.\n"
+	    "    -t threshold:       (default 128) pixels with grayscale values below (default) or\n"
+	    "                        above (with -I) this are plotted. 0-255.\n"
+	    "\n"
+	    "    -a alpha_threshold: (default 128) pixels with alpha values below this are not\n"
+	    "                        plotted, no matter their grayscale value. 0-255.\n"
+	    "\n"
+	    "    -I:                 plot pixels above threshold instead of below.\n"
+	    "    -d:                 print a data file to stdout instead of plotting anything.\n"
+	    "                        outfile is not required, but may be used to send data to a file\n"
+	    "                        instead of stdout. each line is of the form 'x y'. y coordinates\n"
+	    "                        are negative.\n"
+	    "\n"
+	    "    -h:                 display this help and exit.\n",
+	    program_name);
+}
+
+char *infile = NULL, *outfile = NULL;
+unsigned char *data;
+
+void cleanup(void) {
+	if (infile) {
+		free(infile);
+	}
+	if (outfile) {
+		free(outfile);
+	}
+	if (data) {
+		stbi_image_free(data);
+	}
+}
+
 int main(int argc, char **argv) {
-	if (argc != 3) {
-		fprintf(stderr,
-		    "usage: %s <infile> <outfile>\n"
-		    "    infile:  image to render\n"
-		    "    outfile: PDF file to save graph to\n",
-		    argv[0]);
-		return 1;
+	uint8_t threshold = 128, alpha_threshold = 128;
+	bool invert = false, data_output = false;
+
+	int opt = 0;
+	while ((opt = getopt(argc, argv, OPTIONS)) != -1) {
+		switch (opt) {
+			case 'i': infile = strdup(optarg); break;
+			case 'o': outfile = strdup(optarg); break;
+			case 't': {
+				unsigned long t = strtoul(optarg, NULL, 10);
+				if (t > 255) {
+					fprintf(stderr, "%s: invalid threshold %lu: must be <= 255\n", argv[0], t);
+					return 1;
+				} else {
+					threshold = t;
+				}
+				break;
+			}
+			case 'a': {
+				unsigned long a = strtoul(optarg, NULL, 10);
+				if (a > 255) {
+					fprintf(
+					    stderr, "%s: invalid alpha threshold %lu: must be <= 255\n", argv[0], a);
+					return 1;
+				} else {
+					alpha_threshold = a;
+				}
+				break;
+			}
+			case 'I': invert = true; break;
+			case 'd': data_output = true; break;
+			case 'h': usage(argv[0]); return 0;
+			default: usage(argv[0]); return 1;
+		}
 	}
 
-	char *infile = argv[1], *outfile = argv[2];
 	int width, height;
-	// load image as grayscale (1 channel)
-	unsigned char *data = stbi_load(infile, &width, &height, NULL, 1);
+	// load image as grayscale + alpha (2 channels)
+	unsigned char *data = stbi_load(infile, &width, &height, NULL, 2);
 	if (!data) {
 		fprintf(stderr, "%s: failed to decode input '%s': %s\n", argv[0], infile,
 		    stbi_failure_reason());
