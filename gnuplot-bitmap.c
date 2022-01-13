@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
 		close(pipe_data[1]);
 		// run gnuplot
 		execlp("gnuplot", "gnuplot", (char *) NULL);
+		// if we're here, execlp returned instead of replacing our code
+		perror("error calling gnuplot");
 	} else {
 		// parent
 		// close our read ends (child still has them open)
@@ -86,7 +88,11 @@ int main(int argc, char **argv) {
 		// we're done
 		close(pipe_data[1]);
 		// wait for gnuplot to exit
-		waitpid(pid, NULL, 0);
+		int wstatus;
+		waitpid(pid, &wstatus, 0);
+		if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
+			fprintf(stderr, "child process exited abnormally\n");
+		}
 	}
 
 	return 0;
