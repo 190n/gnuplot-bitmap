@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
 	// load image as grayscale (1 channel)
 	unsigned char *data = stbi_load(infile, &width, &height, NULL, 1);
 	if (!data) {
-		fprintf(stderr, "%s: failed to decode input '%s': %s\n", argv[0], infile, stbi_failure_reason());
+		fprintf(stderr, "%s: failed to decode input '%s': %s\n", argv[0], infile,
+		    stbi_failure_reason());
 		return 1;
 	}
 
@@ -54,6 +55,7 @@ int main(int argc, char **argv) {
 	pid_t pid = fork();
 	if (pid == 0) {
 		// child
+		// send script that we're gonna receive to stdin (which will be gnuplot's stdin)
 		if (dup2(pipe_script[0], STDIN_FILENO) < 0) {
 			perror("error with dup2: ");
 			return 1;
@@ -61,28 +63,29 @@ int main(int argc, char **argv) {
 		// close our write ends (parent still has them open)
 		close(pipe_script[1]);
 		close(pipe_data[1]);
+		// run gnuplot
 		execlp("gnuplot", "gnuplot", (char *) NULL);
-		// char buf[1024];
-		// ssize_t read_amount;
-		// while ((read_amount = read(pipe_script[0], buf, 1024)) > 0) {
-		// 	write(STDOUT_FILENO, buf, read_amount);
-		// }
-		// return 0;
 	} else {
 		// parent
 		// close our read ends (child still has them open)
 		close(pipe_script[0]);
 		close(pipe_data[0]);
+		// send the script to the child process
 		dprintf(pipe_script[1], script, outfile, width, height, pipe_data[0]);
 		close(pipe_script[1]);
+		// iterate through pixels
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				if (data[y * width + x] < 128) {
+					// send it to the data stream
+					// y is negated because gnuplot's positive y extends upwards
 					dprintf(pipe_data[1], "%d %d\n", x, -y);
 				}
 			}
 		}
+		// we're done
 		close(pipe_data[1]);
+		// wait for gnuplot to exit
 		waitpid(pid, NULL, 0);
 	}
 
