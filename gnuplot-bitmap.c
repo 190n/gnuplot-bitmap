@@ -35,20 +35,20 @@ int main(int argc, char **argv) {
 	// set up 2 pipes, one for the gnuplot script and one for the data
 	int pipe_script[2], pipe_data[2];
 	if (pipe(pipe_script) != 0) {
-		perror("error with pipe: ");
+		perror("error with pipe");
 		return 1;
 	}
 	if (pipe(pipe_data) != 0) {
-		perror("error with pipe: ");
+		perror("error with pipe");
 		return 1;
 	}
 
 	if (fcntl(pipe_script[0], F_SETFL, O_NONBLOCK) < 0) {
-		perror("error with fcntl: ");
+		perror("error with fcntl");
 		return 1;
 	}
 	if (fcntl(pipe_data[0], F_SETFL, O_NONBLOCK) < 0) {
-		perror("error with fcntl: ");
+		perror("error with fcntl");
 		return 1;
 	}
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 		// child
 		// send script that we're gonna receive to stdin (which will be gnuplot's stdin)
 		if (dup2(pipe_script[0], STDIN_FILENO) < 0) {
-			perror("error with dup2: ");
+			perror("error with dup2");
 			return 1;
 		}
 		// close our write ends (parent still has them open)
