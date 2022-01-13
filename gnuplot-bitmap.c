@@ -60,12 +60,27 @@ int main(int argc, char **argv) {
 	int opt = 0;
 	while ((opt = getopt(argc, argv, OPTIONS)) != -1) {
 		switch (opt) {
-			case 'i': infile = strdup(optarg); break;
-			case 'o': outfile = strdup(optarg); break;
+			case 'i':
+				infile = strdup(optarg);
+				if (!infile) {
+					fprintf(stderr, "%s: failed allocating infile string\n");
+					cleanup();
+					return 1;
+				}
+				break;
+			case 'o':
+				outfile = strdup(optarg);
+				if (!outfile) {
+					fprintf(stderr, "%s: failed allocating infile string\n");
+					cleanup();
+					return 1;
+				}
+				break;
 			case 't': {
 				unsigned long t = strtoul(optarg, NULL, 10);
 				if (t > 255) {
 					fprintf(stderr, "%s: invalid threshold %lu: must be <= 255\n", argv[0], t);
+					cleanup();
 					return 1;
 				} else {
 					threshold = t;
@@ -77,6 +92,7 @@ int main(int argc, char **argv) {
 				if (a > 255) {
 					fprintf(
 					    stderr, "%s: invalid alpha threshold %lu: must be <= 255\n", argv[0], a);
+					cleanup();
 					return 1;
 				} else {
 					alpha_threshold = a;
