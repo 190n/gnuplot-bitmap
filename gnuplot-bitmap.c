@@ -10,7 +10,7 @@ const char *script = "set terminal pdf\n"
                      "set nokey\n"
                      "set xrange [0:%d]\n"
                      "set yrange [-%d:0]\n"
-                     "plot '/proc/self/fd/%d' with points\n";
+                     "plot '/proc/self/fd/%d' with points pointtype 7\n";
 
 int main(int argc, char **argv) {
 	if (argc != 3) {
