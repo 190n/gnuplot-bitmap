@@ -23,7 +23,7 @@ $ make
 - Now run `./gnuplot-bitmap` with whichever options you like.
 
 ```
-usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-s point_size] [-t threshold] [-a alpha_threshold]
+usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-s point_size] [-t threshold] [-a alpha_threshold] [-r dim]
     -i infile:          image to use as input. most common formats are supported.
     -o outfile:         PDF output file.
     -s point_size:      (default 0.25) size of each point in the plot.
@@ -32,6 +32,9 @@ usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-s point_size] [-t threshol
 
     -a alpha_threshold: (default 128) pixels with alpha values below this are not
                         plotted, no matter their grayscale value. 0-255.
+
+    -r max_dim:         if input image is larger than dim on one dimension, resize it to
+                        fit within a dim x dim square, preserving aspect ratio.
 
     -I:                 plot pixels above threshold instead of below.
     -d:                 output a data file instead of plotting anything. outfile is not

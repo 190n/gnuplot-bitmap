@@ -23,7 +23,7 @@ const char *script = "set term pdf size %fin,%fin\n"
 void usage(const char *program_name) {
 	fprintf(stderr,
 	    "usage: %s -i infile -o outfile [-Idh] [-s point_size] [-t threshold] [-a "
-	    "alpha_threshold]\n"
+	    "alpha_threshold] [-r dim]\n"
 	    "    -i infile:          image to use as input. most common formats are supported.\n"
 	    "    -o outfile:         PDF output file.\n"
 	    "    -s point_size:      (default 0.25) size of each point in the plot.\n"
@@ -33,7 +33,7 @@ void usage(const char *program_name) {
 	    "    -a alpha_threshold: (default 128) pixels with alpha values below this are not\n"
 	    "                        plotted, no matter their grayscale value. 0-255.\n"
 	    "\n"
-	    "    -r dim:             if input image is larger than dim on one dimension, resize it to\n"
+	    "    -r max_dim:         if input image is larger than dim on one dimension, resize it to\n"
 	    "                        fit within a dim x dim square, preserving aspect ratio.\n"
 	    "\n"
 	    "    -I:                 plot pixels above threshold instead of below.\n"
