@@ -17,7 +17,7 @@ const char *script = "set term pdf size %fin,%fin\n"
                      "set yrange [-%d:0]\n"
                      "plot '/proc/self/fd/%d' with points pointtype 7 pointsize %f\n";
 
-#define OPTIONS "i:o:s:t:a:Idh"
+#define OPTIONS "i:o:s:t:a:r:Idh"
 
 void usage(const char *program_name) {
 	fprintf(stderr,
@@ -31,6 +31,9 @@ void usage(const char *program_name) {
 	    "\n"
 	    "    -a alpha_threshold: (default 128) pixels with alpha values below this are not\n"
 	    "                        plotted, no matter their grayscale value. 0-255.\n"
+	    "\n"
+	    "    -r dim:             if input image is larger than dim on one dimension, resize it to\n"
+	    "                        fit within a dim x dim square, preserving aspect ratio.\n"
 	    "\n"
 	    "    -I:                 plot pixels above threshold instead of below.\n"
 	    "    -d:                 output a data file instead of plotting anything. outfile is not\n"
@@ -97,6 +100,7 @@ void write_data(int fd) {
 int main(int argc, char **argv) {
 	bool data_output = false;
 	double point_size = 0.25;
+	int max_dimension = 0;
 
 	if (argc == 1) {
 		usage(argv[0]);
@@ -154,6 +158,15 @@ int main(int argc, char **argv) {
 				}
 				break;
 			}
+			case 'r':
+				max_dimension = atoi(optarg);
+				if (max_dimension < 1) {
+					fprintf(stderr, "%s: invalid max dimension %d: must be >= 1\n", argv[0],
+					    max_dimension);
+					cleanup();
+					return 1;
+				}
+				break;
 			case 'I': invert = true; break;
 			case 'd': data_output = true; break;
 			case 'h': usage(argv[0]); return 0;
