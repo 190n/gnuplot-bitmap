@@ -33,10 +33,9 @@ void usage(const char *program_name) {
 	    "                        plotted, no matter their grayscale value. 0-255.\n"
 	    "\n"
 	    "    -I:                 plot pixels above threshold instead of below.\n"
-	    "    -d:                 print a data file to stdout instead of plotting anything.\n"
-	    "                        outfile is not required, but may be used to send data to a file\n"
-	    "                        instead of stdout. each line is of the form 'x y'. y coordinates\n"
-	    "                        are negative.\n"
+	    "    -d:                 output a data file instead of plotting anything. outfile is not\n"
+	    "                        required; the default is stdout. each line is of the form 'x y'.\n"
+	    "                        y coordinates are negative.\n"
 	    "\n"
 	    "    -h:                 display this help and exit.\n",
 	    program_name);

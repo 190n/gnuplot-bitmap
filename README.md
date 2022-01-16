@@ -34,10 +34,9 @@ usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-s point_size] [-t threshol
                         plotted, no matter their grayscale value. 0-255.
 
     -I:                 plot pixels above threshold instead of below.
-    -d:                 print a data file to stdout instead of plotting anything.
-                        outfile is not required, but may be used to send data to a file
-                        instead of stdout. each line is of the form 'x y'. y coordinates
-                        are negative.
+    -d:                 output a data file instead of plotting anything. outfile is not
+                        required; the default is stdout. each line is of the form 'x y'.
+                        y coordinates are negative.
 
     -h:                 display this help and exit.
 ```
