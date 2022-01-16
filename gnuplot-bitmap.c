@@ -1,4 +1,5 @@
 #include "stb_image.h"
+#include "stb_image_resize.h"
 
 #include <fcntl.h>
 #include <stdbool.h>
@@ -49,6 +50,7 @@ unsigned char *data;
 int width, height;
 uint8_t threshold = 128, alpha_threshold = 128;
 bool invert = false;
+int max_dimension = 0;
 
 void cleanup(void) {
 	if (infile) {
@@ -70,6 +72,51 @@ void read_image(const char *program_name) {
 		    stbi_failure_reason());
 		cleanup();
 		exit(1);
+	}
+
+	if (max_dimension > 0 && (width > max_dimension || height > max_dimension)) {
+		int scaled_width, scaled_height;
+		double ratio = 1.0 * width / height;
+		if (width > height) {
+			scaled_width = max_dimension;
+			scaled_height = max_dimension / ratio;
+		} else {
+			scaled_height = max_dimension;
+			scaled_width = scaled_height * ratio;
+		}
+
+		// set to 1 instead of 0
+		if (!scaled_width) {
+			scaled_width = 1;
+		}
+		if (!scaled_height) {
+			scaled_height = 1;
+		}
+
+		printf("resizing %dx%d -> %dx%d\n", width, height, scaled_width, scaled_height);
+
+		unsigned char *new_data
+		    = (unsigned char *) malloc(scaled_width * scaled_height * 2 * sizeof(unsigned char));
+		if (!new_data) {
+			fprintf(stderr, "%s: failed allocating buffer for resized image\n", program_name);
+			cleanup();
+			exit(1);
+		}
+
+		int result = stbir_resize_uint8_srgb(
+		    data, width, height, 0, new_data, scaled_width, scaled_height, 0, 2, 1, 0);
+
+		if (!result) {
+			fprintf(stderr, "%s: error while resizing image\n", program_name);
+			cleanup();
+			free(new_data);
+			exit(1);
+		}
+
+		stbi_image_free(data);
+		data = new_data;
+		width = scaled_width;
+		height = scaled_height;
 	}
 }
 
@@ -100,7 +147,6 @@ void write_data(int fd) {
 int main(int argc, char **argv) {
 	bool data_output = false;
 	double point_size = 0.25;
-	int max_dimension = 0;
 
 	if (argc == 1) {
 		usage(argv[0]);
