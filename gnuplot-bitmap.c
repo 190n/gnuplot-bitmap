@@ -8,9 +8,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-const char *script = "set terminal pdf\n"
+const char *script = "set term pdf size %fin,%fin\n"
+                     "set size ratio %f\n"
                      "set output '%s'\n"
-                     "set nokey\n"
+                     "unset key\n"
+                     "unset tics\n"
                      "set xrange [0:%d]\n"
                      "set yrange [-%d:0]\n"
                      "plot '/proc/self/fd/%d' with points pointtype 7 pointsize %f\n";
@@ -234,7 +236,10 @@ int main(int argc, char **argv) {
 			close(pipe_script[0]);
 			close(pipe_data[0]);
 			// send the script to the child process
-			dprintf(pipe_script[1], script, outfile, width, height, pipe_data[0], point_size);
+			double ratio = 1.0 * height / width, page_width = ratio < 1.0 ? 6.0 : 5.0 / ratio + 1.0,
+			       page_height = ratio < 1.0 ? 5.0 * ratio + 1.0 : 6.0;
+			dprintf(pipe_script[1], script, page_width, page_height, ratio, outfile, width, height,
+			    pipe_data[0], point_size);
 			close(pipe_script[1]);
 			write_data(pipe_data[1]);
 			// we're done
