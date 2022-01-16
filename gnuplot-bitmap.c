@@ -13,15 +13,17 @@ const char *script = "set terminal pdf\n"
                      "set nokey\n"
                      "set xrange [0:%d]\n"
                      "set yrange [-%d:0]\n"
-                     "plot '/proc/self/fd/%d' with points pointtype 7\n";
+                     "plot '/proc/self/fd/%d' with points pointtype 7 pointsize %f\n";
 
-#define OPTIONS "i:o:t:a:Idh"
+#define OPTIONS "i:o:s:t:a:Idh"
 
 void usage(const char *program_name) {
 	fprintf(stderr,
-	    "usage: %s -i infile -o outfile [-Idh] [-t threshold] [-a alpha_threshold]\n"
+	    "usage: %s -i infile -o outfile [-Idh] [-s point_size] [-t threshold] [-a "
+	    "alpha_threshold]\n"
 	    "    -i infile:          image to use as input. most common formats are supported.\n"
 	    "    -o outfile:         PDF output file.\n"
+	    "    -s point_size:      (default 0.25) size of each point in the plot.\n"
 	    "    -t threshold:       (default 128) pixels with grayscale values below (default) or\n"
 	    "                        above (with -I) this are plotted. 0-255.\n"
 	    "\n"
@@ -93,6 +95,7 @@ void write_data(int fd) {
 
 int main(int argc, char **argv) {
 	bool data_output = false;
+	double point_size = 0.25;
 
 	if (argc == 1) {
 		usage(argv[0]);
@@ -114,6 +117,15 @@ int main(int argc, char **argv) {
 				outfile = my_strdup(optarg);
 				if (!outfile) {
 					fprintf(stderr, "%s: failed allocating infile string\n", argv[0]);
+					cleanup();
+					return 1;
+				}
+				break;
+			case 's':
+				point_size = strtod(optarg, NULL);
+				if (point_size <= 0) {
+					fprintf(
+					    stderr, "%s: invalid point size %f. must be >0.\n", argv[0], point_size);
 					cleanup();
 					return 1;
 				}
@@ -222,7 +234,7 @@ int main(int argc, char **argv) {
 			close(pipe_script[0]);
 			close(pipe_data[0]);
 			// send the script to the child process
-			dprintf(pipe_script[1], script, outfile, width, height, pipe_data[0]);
+			dprintf(pipe_script[1], script, outfile, width, height, pipe_data[0], point_size);
 			close(pipe_script[1]);
 			write_data(pipe_data[1]);
 			// we're done

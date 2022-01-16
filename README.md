@@ -23,9 +23,10 @@ $ make
 - Now run `./gnuplot-bitmap` with whichever options you like.
 
 ```
-usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-t threshold] [-a alpha_threshold]
+usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-s point_size] [-t threshold] [-a alpha_threshold]
     -i infile:          image to use as input. most common formats are supported.
     -o outfile:         PDF output file.
+    -s point_size:      (default 0.25) size of each point in the plot.
     -t threshold:       (default 128) pixels with grayscale values below (default) or
                         above (with -I) this are plotted. 0-255.
 
