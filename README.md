@@ -43,3 +43,8 @@ usage: ./gnuplot-bitmap -i infile -o outfile [-Idh] [-s point_size] [-t threshol
 
     -h:                 display this help and exit.
 ```
+
+## Intended future features
+
+- Use a temporary file instead of a pipe to send the data into gnuplot (should fix execution on macOS).
+- Support dithering the image instead of using a simple threshold.
